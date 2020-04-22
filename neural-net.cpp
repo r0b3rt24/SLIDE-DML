@@ -27,8 +27,13 @@ public:
 
     void setOutputVal(double val) {m_outputVal = val;}
     double getOutputVal(void) {return m_outputVal;}
+    void calcOutputGradients(double targetVal);
+    void calcHiddenGradients(const Layer &nextLayer);
+    void updateInputWeights(Layer &prevLayer); 
 
 private:
+    static const eta;
+    static double alpah;
     static double activation(double x);
     static double activationDerivative(double x);
     double m_outputVal;
@@ -37,7 +42,13 @@ private:
         return rand() / double(RAND_MAX);
     }
     unsigned m_myIndex;
+    double m_gradient;
+    double sumDOW(const Layer& nextLayer) const;
 };
+
+
+double Neuron::eta = 0.15;
+double Neuron::alpha = 0.5;
 
 Neuron:: activation(double x)
 {
@@ -48,6 +59,45 @@ Neuron:: activationDerivative(double x)
 {
     return 1 - x * x;  // an aproxiamation to the derivative (faster)
 }
+
+void Neuron::updateInputWeights(Layer &prevLayer)
+{
+    for (unsigned n = 0; n < prevLayer.size(); ++n) {
+        Neuron &neuron = prevLayer[n];
+
+        double oldDeltaWeight = neuron.m_outputWeights[m_myIndex].deltaWeight;
+
+        double newDeltaWeight = eta * neuron.getOutputVal() * m_gradient + alpha * oldDeltaWeight;
+
+        neuron.m_outputWeights[m_myIndex].deltaWeight = newDeltaWeight;
+        neuron.m_outputWeights[m_myIndex].weight += newDeltaWeight;
+    }
+}
+
+double Neuron::sumDOW(const Layer& nextLayer) const
+{
+    double sum = 0.0;
+
+    for (unsigned n = 0; n < nextLayer.size() - 1; ++n) {
+        sum += m_outputWeights[n].weight * nextLayer[n].m_gradient;
+    }
+
+    return sum;
+}
+
+void Neuron::calcHiddenGradients(const Layer &nextLayer)
+{
+    double dow = sumDOW(nextLayer);
+    m_gradient = dow * Neuron::activationDerivative(m_outputVal);
+
+}
+
+void Neuron::calcOutputGradients(double targetVal) {
+    double delta = targetVal - m_outputVal;
+    m_gradient = delta * Neuron::activationDerivative(m_outputVal);
+}
+
+
 
 Neuron::Neuron(unsigned numOutput, unsigned myIndex)
 {
@@ -77,9 +127,9 @@ class Net
 {
 public:
     Net(const vector<unsigned> &topology);
-    void feedForward(const vector<double> &inputVals){};
-    void backProp(const vector<double> &targetVals){};
-    void getResult(vector<double> &resultVals) const {};
+    void feedForward(const vector<double> &inputVals);
+    void backProp(const vector<double> &targetVals);
+    void getResult(vector<double> &resultVals) const;
 
 private:
     vector<Layer> m_layers;  //m_layers[layerNum][neuroNum]
@@ -87,6 +137,14 @@ private:
     double m_recentAvgErr;
     double m_recentAvgSmoothingFactor;
 
+
+void Net::getResult(vector<double> &resultVals) const 
+{
+    resultVals.clear();
+    for (unsigned n = 0; n < m_layers.size() - 1; ++n) {
+        resultVals.push_back(m_layers.back()[n].getOutputVal());
+    }
+}
 void Net::feedForward(const vector<double> &inputVals)
 {
     assert(inputVals.size() == m_layers[0].size() - 1);
@@ -126,6 +184,7 @@ void Net::backProp(const std::vector<double> &targetVals)
         outputLayer[n].calcOutputGradients(targetVals[n]);
     }
 
+    // calculate the gradient
     for (unsigned layerNum = m_layers.size() - 2; layerNum > 0; --layerNum) {
         Layer &hiddenLayer = m_layters[layerNum];
         Layer &nextLayer = m_layers[layerNum + 1];
@@ -135,11 +194,14 @@ void Net::backProp(const std::vector<double> &targetVals)
         }
     }
 
+    // update connection weights
     for (unsigned layerNum = m_layers.size() - 1; layerNum > 0; --layerNum) {
         Layer &layer = m_layers[layerNum];
-        Layer &prevLayer = m_layers[layerNum-1];
+        Layer &prevLayer = m_layers[layerNum - 1];
 
-        for 
+        for (unsigned n = 0; n < layer.size() - 1; ++n) {
+            layer[n].updateInputWeights(prevLayer);
+        }
     }
 }
 
