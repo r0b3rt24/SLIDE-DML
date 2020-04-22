@@ -83,8 +83,9 @@ public:
 
 private:
     vector<Layer> m_layers;  //m_layers[layerNum][neuroNum]
-
-};
+    double m_error;
+    double m_recentAvgErr;
+    double m_recentAvgSmoothingFactor;
 
 void Net::feedForward(const vector<double> &inputVals)
 {
@@ -103,6 +104,44 @@ void Net::feedForward(const vector<double> &inputVals)
         }
     }
 };
+
+void Net::backProp(const std::vector<double> &targetVals)
+{
+    Layer &outputLayer = m_layers.back();
+    m_error = 0.0;
+
+    for (unsigned n = 0; n < outputLayer.size() - 1; ++n) {
+        double delta = targetVals[n] - outputLayer[n].getOutputVal();
+        m_error += delta * delta;
+    }
+
+    m_error /= outputLayer.size() - 1;
+    m_error = sqrt(m_error);
+
+    m_recentAvgErr = (m_recentAvgErr * m_recentAvgSmoothingFactor + m_error)
+                     / (m_recentSmoothingFactor + 1.0);
+    
+    for (unsigned int n = 0; n < outputLayer.size() - 1; ++n)
+    {
+        outputLayer[n].calcOutputGradients(targetVals[n]);
+    }
+
+    for (unsigned layerNum = m_layers.size() - 2; layerNum > 0; --layerNum) {
+        Layer &hiddenLayer = m_layters[layerNum];
+        Layer &nextLayer = m_layers[layerNum + 1];
+
+        for (unsigned n = 0; n < hiddenLayer.size(); ++n) {
+            hiddenLayer[n].calcOutputGradients(nextLayer);
+        }
+    }
+
+    for (unsigned layerNum = m_layers.size() - 1; layerNum > 0; --layerNum) {
+        Layer &layer = m_layers[layerNum];
+        Layer &prevLayer = m_layers[layerNum-1];
+
+        for 
+    }
+}
 
 Net::Net(const vector<unsigned> &topology)
 {
