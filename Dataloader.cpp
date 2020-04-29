@@ -44,6 +44,8 @@ unsigned Dataloader::getNext(vector<double> &inputVals) {
             inputVals.push_back(oneValue);
         }
     }
+
+    return inputVals.size();
 }
 
 unsigned Dataloader::getTargetOutputs(vector<double> &targetOutputVals) {
@@ -61,4 +63,6 @@ unsigned Dataloader::getTargetOutputs(vector<double> &targetOutputVals) {
             targetOutputVals.push_back(oneValue);
         }
     }
+
+    return targetOutputVals.size();
 }

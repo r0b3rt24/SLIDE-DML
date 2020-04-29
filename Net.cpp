@@ -80,3 +80,5 @@ Net::Net(const vector<unsigned> &topology) {
 
     m_layers.back().back().setOutputVal(1.0);
 }
+
+double Net::getRecentAverageError() const { return m_recentAvgErr; }

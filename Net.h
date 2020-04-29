@@ -18,6 +18,8 @@ public:
 
     void getResult(vector<double> &resultVals) const;
 
+    double getRecentAverageError() const;
+
 private:
     vector<Layer> m_layers;  //m_layers[layerNum][neuroNum]
     double m_error;
