@@ -59,7 +59,7 @@ void Neuron::feedForward(const Layer &prevLayer) {
 
     for (unsigned n = 0; n < prevLayer.size(); ++n) {
         sum += prevLayer[n].getOutputVal() *
-               prevLayer[m_myIndex].m_outputWeights[m_myIndex].weight;
+               prevLayer[n].m_outputWeights[m_myIndex].weight;
     }
 
     m_outputVal = Neuron::activation(sum);
