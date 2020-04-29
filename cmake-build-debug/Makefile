@@ -123,6 +123,33 @@ SLIDE_DML/fast:
 	$(MAKE) -f CMakeFiles/SLIDE_DML.dir/build.make CMakeFiles/SLIDE_DML.dir/build
 .PHONY : SLIDE_DML/fast
 
+Dataloader.o: Dataloader.cpp.o
+
+.PHONY : Dataloader.o
+
+# target to build an object file
+Dataloader.cpp.o:
+	$(MAKE) -f CMakeFiles/SLIDE_DML.dir/build.make CMakeFiles/SLIDE_DML.dir/Dataloader.cpp.o
+.PHONY : Dataloader.cpp.o
+
+Dataloader.i: Dataloader.cpp.i
+
+.PHONY : Dataloader.i
+
+# target to preprocess a source file
+Dataloader.cpp.i:
+	$(MAKE) -f CMakeFiles/SLIDE_DML.dir/build.make CMakeFiles/SLIDE_DML.dir/Dataloader.cpp.i
+.PHONY : Dataloader.cpp.i
+
+Dataloader.s: Dataloader.cpp.s
+
+.PHONY : Dataloader.s
+
+# target to generate assembly for a file
+Dataloader.cpp.s:
+	$(MAKE) -f CMakeFiles/SLIDE_DML.dir/build.make CMakeFiles/SLIDE_DML.dir/Dataloader.cpp.s
+.PHONY : Dataloader.cpp.s
+
 Net.o: Net.cpp.o
 
 .PHONY : Net.o
@@ -213,6 +240,9 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
 	@echo "... SLIDE_DML"
+	@echo "... Dataloader.o"
+	@echo "... Dataloader.i"
+	@echo "... Dataloader.s"
 	@echo "... Net.o"
 	@echo "... Net.i"
 	@echo "... Net.s"

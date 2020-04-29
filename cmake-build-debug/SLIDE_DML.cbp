@@ -85,6 +85,12 @@
 		<Unit filename="/Users/hcao/Projects/Schoolwork/CS759/SLIDE-DML/Connection.h">
 			<Option target="SLIDE_DML"/>
 		</Unit>
+		<Unit filename="/Users/hcao/Projects/Schoolwork/CS759/SLIDE-DML/Dataloader.cpp">
+			<Option target="SLIDE_DML"/>
+		</Unit>
+		<Unit filename="/Users/hcao/Projects/Schoolwork/CS759/SLIDE-DML/Dataloader.h">
+			<Option target="SLIDE_DML"/>
+		</Unit>
 		<Unit filename="/Users/hcao/Projects/Schoolwork/CS759/SLIDE-DML/Net.cpp">
 			<Option target="SLIDE_DML"/>
 		</Unit>

@@ -11,4 +11,4 @@ add_executable(SLIDE_DML
         Net.cpp
         Net.h
         Neuron.cpp
-        Neuron.h)
+        Neuron.h Dataloader.h Dataloader.cpp)
