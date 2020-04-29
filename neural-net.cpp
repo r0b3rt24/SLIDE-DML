@@ -6,12 +6,12 @@
 
 using namespace std;
 
-
 struct Connection
 {
     double weight;
     double deltaWeight;
 };
+
 class Neuron;
 typedef vector<Neuron> Layer;
 
