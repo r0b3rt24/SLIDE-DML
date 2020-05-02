@@ -22,11 +22,18 @@ public:
 
     double getOutputVal() const { return m_outputVal; }
 
+    double softmax(Layer &prevLayer);
+
+    double softmaxDrivative(double targetVal);
+
     void calcOutputGradients(double targetVal);
 
     void calcHiddenGradients(const Layer &nextLayer);
 
     void updateInputWeights(Layer &prevLayer);
+
+    double m_inputVal;
+    bool  if_sotfmax;
 
 private:
     static double eta;
@@ -36,15 +43,16 @@ private:
 
     static double activationDerivative(double x);
 
-    double m_outputVal{};
+    double m_outputVal;
     vector<Connection> m_outputWeights;
 
     static double randomWeight() {
-        return rand() / double(RAND_MAX);
+        return rand()/double(RAND_MAX);
+//        return 2;
     }
 
     unsigned m_myIndex;
-    double m_gradient{};
+    double m_gradient;
 
     double sumDOW(const Layer &nextLayer) const;
 };

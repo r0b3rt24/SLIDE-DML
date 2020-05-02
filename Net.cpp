@@ -4,7 +4,7 @@ using namespace std;
 
 void Net::getResult(vector<double> &resultVals) const {
     resultVals.clear();
-    for (unsigned n = 0; n < m_layers.size() - 1; ++n) {
+    for (unsigned n = 0; n < m_layers.back().size() - 1; ++n) {
         resultVals.push_back(m_layers.back()[n].getOutputVal());
     }
 }
@@ -23,27 +23,47 @@ void Net::feedForward(const vector<double> &inputVals) {
         for (unsigned n = 0; n < m_layers[layerNum].size() - 1; ++n) {
             m_layers[layerNum][n].feedForward(prevLayer);
         }
+
+        if (layerNum == m_layers.size()-1) {
+            Layer &thisLayer = m_layers[layerNum];
+            for (unsigned n = 0; n < m_layers[layerNum].size() - 1; ++n) {
+                m_layers[layerNum][n].softmax(thisLayer);
+            }
+        }
     }
 };
 
 void Net::backProp(const std::vector<double> &targetVals) {
     Layer &outputLayer = m_layers.back();
-    m_error = 0.0;
 
-    for (unsigned n = 0; n < outputLayer.size() - 1; ++n) {
-        double delta = targetVals[n] - outputLayer[n].getOutputVal();
-        m_error += delta * delta;
+    // TODO: change to cross-entropy
+//    m_error = 0.0;
+//
+//    for (unsigned n = 0; n < outputLayer.size() - 1; ++n) {
+//        double delta = targetVals[n] - outputLayer[n].getOutputVal();
+//        m_error += delta * delta;
+//    }
+//
+//    m_error /= outputLayer.size() - 1;
+//    m_error = sqrt(m_error);
+
+//  cross-entropy
+    m_error = 0.0;
+    for (unsigned  n = 0; n < outputLayer.size() - 1; ++n) {
+        double temp = targetVals[n] * log(outputLayer[n].getOutputVal()) + (1 - targetVals[n]) * log(1 -outputLayer[n].getOutputVal());
+        m_error += temp;
     }
 
-    m_error /= outputLayer.size() - 1;
-    m_error = sqrt(m_error);
+    m_error = -m_error/outputLayer.size();
 
     m_recentAvgErr = (m_recentAvgErr * m_recentAvgSmoothingFactor + m_error)
                      / (m_recentAvgSmoothingFactor + 1.0);
 
-    for (unsigned int n = 0; n < outputLayer.size() - 1; ++n) {
-        outputLayer[n].calcOutputGradients(targetVals[n]);
+    for (unsigned n = 0; n < outputLayer.size() - 1; ++n) {
+//        outputLayer[n].calcOutputGradients(targetVals[n]);
+        outputLayer[n].softmaxDrivative(targetVals[n]);
     }
+
 
     // calculate the gradient
     for (unsigned layerNum = m_layers.size() - 2; layerNum > 0; --layerNum) {
@@ -51,7 +71,7 @@ void Net::backProp(const std::vector<double> &targetVals) {
         Layer &nextLayer = m_layers[layerNum + 1];
 
         for (unsigned n = 0; n < hiddenLayer.size(); ++n) {
-            hiddenLayer[n].calcOutputGradients(targetVals[n]);
+            hiddenLayer[n].calcHiddenGradients(nextLayer);
         }
     }
 
@@ -74,11 +94,17 @@ Net::Net(const vector<unsigned> &topology) {
 
         for (unsigned neuroNum = 0; neuroNum <= topology[layerNum]; ++neuroNum) {
             m_layers.back().push_back(Neuron(numOutputs, neuroNum));
-            cout << "Neuron Got Created" << endl;
+//            cout << "Neuron Got Created" << endl;
         }
     }
-
+    Net::m_recentAvgSmoothingFactor = 100.0; // Number of training samples to average over
     m_layers.back().back().setOutputVal(1.0);
+
+    // make last layer become softmax
+    Layer &layer = m_layers.back();
+    for (unsigned n = 0; n < layer.size(); n++) {
+        layer[n].if_sotfmax = true;
+    }
 }
 
 double Net::getRecentAverageError() const { return m_recentAvgErr; }

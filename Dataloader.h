@@ -21,6 +21,7 @@ public:
 
 private:
     ifstream m_trainingDataFile;
+    ifstream m_topologyFile;
 };
 
 #endif //SLIDE_DML_DATALOADER_H
