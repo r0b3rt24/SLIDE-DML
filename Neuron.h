@@ -26,7 +26,7 @@ public:
 
     double softmaxDrivative(double targetVal);
 
-    void calcOutputGradients(double targetVal);
+    void calcOutputGradients(double o_gradient);
 
     void calcHiddenGradients(const Layer &nextLayer);
 

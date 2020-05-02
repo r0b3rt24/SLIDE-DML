@@ -50,23 +50,31 @@ void Net::backProp(const std::vector<double> &targetVals) {
 //  cross-entropy
     m_error = 0.0;
     for (unsigned  n = 0; n < outputLayer.size() - 1; ++n) {
-        double temp = targetVals[n] * log(outputLayer[n].getOutputVal()) + (1 - targetVals[n]) * log(1 -outputLayer[n].getOutputVal());
+        double temp = targetVals[n] * log(outputLayer[n].getOutputVal());
         m_error += temp;
     }
 
-    m_error = -m_error/outputLayer.size();
+//    m_error = -m_error/outputLayer.size();
+    m_error = -m_error;
 
     m_recentAvgErr = (m_recentAvgErr * m_recentAvgSmoothingFactor + m_error)
                      / (m_recentAvgSmoothingFactor + 1.0);
 
+    // sum exp
+    double sumExp = 0;
     for (unsigned n = 0; n < outputLayer.size() - 1; ++n) {
-//        outputLayer[n].calcOutputGradients(targetVals[n]);
-        outputLayer[n].softmaxDrivative(targetVals[n]);
+        sumExp += exp(outputLayer[n].getOutputVal());
     }
 
+    // calc and set output gradient: no need to update
+    vector<double> gradient_output;
+    for (unsigned n = 0; n < outputLayer.size() - 1; ++n) {
+        double o_gradient = (outputLayer[n].getOutputVal() - targetVals[n]) * (outputLayer[n].getOutputVal()*(targetVals[n] - outputLayer[n].getOutputVal()));
+        outputLayer[n].calcOutputGradients(o_gradient);
+    }
 
     // calculate the gradient
-    for (unsigned layerNum = m_layers.size() - 2; layerNum > 0; --layerNum) {
+    for (unsigned layerNum = m_layers.size() - 2; layerNum > 0; --layerNum) {  // hidden layers
         Layer &hiddenLayer = m_layers[layerNum];
         Layer &nextLayer = m_layers[layerNum + 1];
 

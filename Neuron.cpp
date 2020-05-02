@@ -12,6 +12,23 @@ double Neuron::activationDerivative(double x) {
     return 1.0 - x * x;  // an approximation to the derivative (faster)
 }
 
+void Neuron::feedForward(const Layer &prevLayer) {
+    double sum = 0.0;
+
+    // TODO: bias??
+    for (unsigned n = 0; n < prevLayer.size(); ++n) {
+        sum += prevLayer[n].getOutputVal() *
+               prevLayer[n].m_outputWeights[m_myIndex].weight;
+    }
+//    sum += prevLayer.back().m_outputWeights[m_myIndex].weight;  // Bias
+
+    if (if_sotfmax) {
+        m_inputVal = sum;  //m_outputVal = inputVal
+    } else {
+        m_outputVal = Neuron::activation(sum);
+    }
+}
+
 double Neuron::softmax(Layer &thisLayer) {
     double sumExp = 0;
 
@@ -40,7 +57,7 @@ void Neuron::updateInputWeights(Layer &prevLayer) {
                   * oldDeltaWeight;
 
         neuron.m_outputWeights[m_myIndex].deltaWeight = newDeltaWeight;
-        neuron.m_outputWeights[m_myIndex].weight += newDeltaWeight;
+        neuron.m_outputWeights[m_myIndex].weight += newDeltaWeight;  // updated the w
     }
 }
 
@@ -59,10 +76,10 @@ void Neuron::calcHiddenGradients(const Layer &nextLayer) {
     m_gradient = dow * Neuron::activationDerivative(m_outputVal);
 }
 
-void Neuron::calcOutputGradients(double targetVal) {
-    double delta = targetVal - m_outputVal;
-    m_gradient = delta * Neuron::activationDerivative(m_outputVal);
+void Neuron::calcOutputGradients(double o_gradient) {
+    m_gradient = o_gradient;
 }
+
 
 Neuron::Neuron(unsigned numOutput, unsigned myIndex) {
     for (unsigned i = 0; i < numOutput; ++i) {
@@ -71,22 +88,4 @@ Neuron::Neuron(unsigned numOutput, unsigned myIndex) {
     }
 
     m_myIndex = myIndex;
-}
-
-
-void Neuron::feedForward(const Layer &prevLayer) {
-    double sum = 0.0;
-
-    // TODO: bias??
-    for (unsigned n = 0; n < prevLayer.size(); ++n) {
-        sum += prevLayer[n].getOutputVal() *
-               prevLayer[n].m_outputWeights[m_myIndex].weight;
-    }
-//    sum += prevLayer.back().m_outputWeights[m_myIndex].weight;  // Bias
-
-    if (if_sotfmax) {
-        m_inputVal = sum;  //m_outputVal = inputVal
-    } else {
-        m_outputVal = Neuron::activation(sum);
-    }
 }
