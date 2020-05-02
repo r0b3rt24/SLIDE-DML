@@ -37,15 +37,6 @@ void Net::backProp(const std::vector<double> &targetVals) {
     Layer &outputLayer = m_layers.back();
 
     // TODO: change to cross-entropy
-//    m_error = 0.0;
-//
-//    for (unsigned n = 0; n < outputLayer.size() - 1; ++n) {
-//        double delta = targetVals[n] - outputLayer[n].getOutputVal();
-//        m_error += delta * delta;
-//    }
-//
-//    m_error /= outputLayer.size() - 1;
-//    m_error = sqrt(m_error);
 
 //  cross-entropy
     m_error = 0.0;
@@ -57,8 +48,7 @@ void Net::backProp(const std::vector<double> &targetVals) {
 //    m_error = -m_error/outputLayer.size();
     m_error = -m_error;
 
-    m_recentAvgErr = (m_recentAvgErr * m_recentAvgSmoothingFactor + m_error)
-                     / (m_recentAvgSmoothingFactor + 1.0);
+    m_recentAvgErr = m_error;
 
     // sum exp
     double sumExp = 0;
@@ -69,11 +59,18 @@ void Net::backProp(const std::vector<double> &targetVals) {
     // calc and set output gradient: no need to update
     vector<double> gradient_output;
     for (unsigned n = 0; n < outputLayer.size() - 1; ++n) {
+        // dE/dO_in
         double o_gradient = (outputLayer[n].getOutputVal() - targetVals[n]) * (outputLayer[n].getOutputVal()*(targetVals[n] - outputLayer[n].getOutputVal()));
         outputLayer[n].calcOutputGradients(o_gradient);
     }
 
-    // calculate the gradient
+    // update input weights for output layer
+    for (unsigned n = 0; n < outputLayer.size() - 1; ++n) {
+        // dE/dO_in
+        outputLayer[n].updateInputWeights(m_layers[m_layers.size()-2]);
+    }
+
+    // calculate the gradient for hidden layers
     for (unsigned layerNum = m_layers.size() - 2; layerNum > 0; --layerNum) {  // hidden layers
         Layer &hiddenLayer = m_layers[layerNum];
         Layer &nextLayer = m_layers[layerNum + 1];

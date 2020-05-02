@@ -1,8 +1,8 @@
 #include "Neuron.h"
 #include "Connection.h"
 
-double Neuron::eta = 0.001;    // overall net learning rate, [0.0..1.0]
-double Neuron::alpha = 0.1;   // momentum, multiplier of last deltaWeight, [0.0..1.0]
+double Neuron::eta = 0.05;    // overall net learning rate, [0.0..1.0]
+double Neuron::alpha = 0;   // momentum, multiplier of last deltaWeight, [0.0..1.0]
 
 double Neuron::activation(double x) {
     return tanh(x);
@@ -61,19 +61,22 @@ void Neuron::updateInputWeights(Layer &prevLayer) {
     }
 }
 
-double Neuron::sumDOW(const Layer &nextLayer) const {
-    double sum = 0.0;
-
-    for (unsigned n = 0; n < nextLayer.size() - 1; ++n) {
-        sum += m_outputWeights[n].weight * nextLayer[n].m_gradient;
-    }
-
-    return sum;
-}
+//double Neuron::sumDOW(const Layer &nextLayer) const {
+//    double sum = 0.0;
+//
+//    for (unsigned n = 0; n < nextLayer.size() - 1; ++n) {
+//        sum += m_outputWeights[n].weight * nextLayer[n].m_gradient;
+//    }
+//
+//    return sum;
+//}
 
 void Neuron::calcHiddenGradients(const Layer &nextLayer) {
-    double dow = sumDOW(nextLayer);
-    m_gradient = dow * Neuron::activationDerivative(m_outputVal);
+    double sum = 0;
+    for (unsigned n = 0; n < nextLayer.size()-1; n++) {
+        sum += nextLayer[n].m_gradient * m_outputWeights[n].weight * Neuron::activationDerivative(m_outputVal);
+    }
+    m_gradient = sum;
 }
 
 void Neuron::calcOutputGradients(double o_gradient) {
