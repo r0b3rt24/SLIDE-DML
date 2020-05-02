@@ -20,11 +20,13 @@ public:
 
     double getRecentAverageError() const;
 
+    double m_recentAvgSmoothingFactor;
+
 private:
     vector<Layer> m_layers;  //m_layers[layerNum][neuroNum]
     double m_error;
     double m_recentAvgErr;
-    double m_recentAvgSmoothingFactor;
+
 };
 
 #endif

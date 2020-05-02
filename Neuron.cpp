@@ -1,22 +1,43 @@
 #include "Neuron.h"
 #include "Connection.h"
 
-double Neuron::eta = 0.15;    // overall net learning rate, [0.0..1.0]
-double Neuron::alpha = 0.5;   // momentum, multiplier of last deltaWeight, [0.0..1.0]
+double Neuron::eta = 0.001;    // overall net learning rate, [0.0..1.0]
+double Neuron::alpha = 0.1;   // momentum, multiplier of last deltaWeight, [0.0..1.0]
 
 double Neuron::activation(double x) {
     return tanh(x);
 }
 
 double Neuron::activationDerivative(double x) {
-    return 1 - x * x;  // an aproxiamation to the derivative (faster)
+    return 1.0 - x * x;  // an approximation to the derivative (faster)
+}
+
+double Neuron::softmax(Layer &thisLayer) {
+    double sumExp = 0;
+
+    for (unsigned n = 0; n < thisLayer.size()-1; ++n) {
+        Neuron &neuron = thisLayer[n];
+        sumExp += exp(neuron.m_inputVal);
+    }
+
+    m_outputVal = exp(thisLayer[m_myIndex].m_inputVal)/sumExp;
+}
+
+double Neuron::softmaxDrivative(double targetVal) {
+    return -1 * (targetVal * 1/m_outputVal + (1-targetVal)*(1/m_outputVal));
 }
 
 void Neuron::updateInputWeights(Layer &prevLayer) {
-    for (auto & neuron : prevLayer) {
+    for (unsigned n = 0; n < prevLayer.size(); ++n) {
+        Neuron &neuron = prevLayer[n];
         double oldDeltaWeight = neuron.m_outputWeights[m_myIndex].deltaWeight;
 
-        double newDeltaWeight = eta * neuron.getOutputVal() * m_gradient + alpha * oldDeltaWeight;
+        double newDeltaWeight =
+                eta
+                * neuron.getOutputVal()
+                * m_gradient
+                + alpha
+                  * oldDeltaWeight;
 
         neuron.m_outputWeights[m_myIndex].deltaWeight = newDeltaWeight;
         neuron.m_outputWeights[m_myIndex].weight += newDeltaWeight;
@@ -36,14 +57,12 @@ double Neuron::sumDOW(const Layer &nextLayer) const {
 void Neuron::calcHiddenGradients(const Layer &nextLayer) {
     double dow = sumDOW(nextLayer);
     m_gradient = dow * Neuron::activationDerivative(m_outputVal);
-
 }
 
 void Neuron::calcOutputGradients(double targetVal) {
     double delta = targetVal - m_outputVal;
     m_gradient = delta * Neuron::activationDerivative(m_outputVal);
 }
-
 
 Neuron::Neuron(unsigned numOutput, unsigned myIndex) {
     for (unsigned i = 0; i < numOutput; ++i) {
@@ -54,13 +73,20 @@ Neuron::Neuron(unsigned numOutput, unsigned myIndex) {
     m_myIndex = myIndex;
 }
 
+
 void Neuron::feedForward(const Layer &prevLayer) {
     double sum = 0.0;
 
+    // TODO: bias??
     for (unsigned n = 0; n < prevLayer.size(); ++n) {
         sum += prevLayer[n].getOutputVal() *
                prevLayer[n].m_outputWeights[m_myIndex].weight;
     }
+//    sum += prevLayer.back().m_outputWeights[m_myIndex].weight;  // Bias
 
-    m_outputVal = Neuron::activation(sum);
+    if (if_sotfmax) {
+        m_inputVal = sum;  //m_outputVal = inputVal
+    } else {
+        m_outputVal = Neuron::activation(sum);
+    }
 }
