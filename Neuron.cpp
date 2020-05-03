@@ -1,5 +1,6 @@
 #include "Neuron.h"
 #include "Connection.h"
+#include <chrono>
 
 double Neuron::eta = 0.05;    // overall net learning rate, [0.0..1.0]
 double Neuron::alpha = 0;   // momentum, multiplier of last deltaWeight, [0.0..1.0]
@@ -13,6 +14,7 @@ double Neuron::activationDerivative(double x) {
 }
 
 void Neuron::feedForward(const Layer &prevLayer) {
+    auto start = std::chrono::high_resolution_clock::now();  // timing start
     double sum = 0.0;
 
     // TODO: bias??
@@ -27,6 +29,8 @@ void Neuron::feedForward(const Layer &prevLayer) {
     } else {
         m_outputVal = Neuron::activation(sum);
     }
+    auto finish = std::chrono::high_resolution_clock::now();  // timing ends
+    std::chrono::duration<double> elapsed = finish - start;
 }
 
 double Neuron::softmax(Layer &thisLayer) {
@@ -38,10 +42,6 @@ double Neuron::softmax(Layer &thisLayer) {
     }
 
     m_outputVal = exp(thisLayer[m_myIndex].m_inputVal)/sumExp;
-}
-
-double Neuron::softmaxDrivative(double targetVal) {
-    return -1 * (targetVal * 1/m_outputVal + (1-targetVal)*(1/m_outputVal));
 }
 
 void Neuron::updateInputWeights(Layer &prevLayer) {
@@ -60,16 +60,6 @@ void Neuron::updateInputWeights(Layer &prevLayer) {
         neuron.m_outputWeights[m_myIndex].weight += newDeltaWeight;  // updated the w
     }
 }
-
-//double Neuron::sumDOW(const Layer &nextLayer) const {
-//    double sum = 0.0;
-//
-//    for (unsigned n = 0; n < nextLayer.size() - 1; ++n) {
-//        sum += m_outputWeights[n].weight * nextLayer[n].m_gradient;
-//    }
-//
-//    return sum;
-//}
 
 void Neuron::calcHiddenGradients(const Layer &nextLayer) {
     double sum = 0;

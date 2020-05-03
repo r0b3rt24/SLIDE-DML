@@ -22,6 +22,10 @@ public:
 
     double m_recentAvgSmoothingFactor;
 
+    double total_forward_time;
+
+    double total_backprop_time;
+
 private:
     vector<Layer> m_layers;  //m_layers[layerNum][neuroNum]
     double m_error;

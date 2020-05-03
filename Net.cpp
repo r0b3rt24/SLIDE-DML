@@ -11,7 +11,7 @@ void Net::getResult(vector<double> &resultVals) const {
 
 void Net::feedForward(const vector<double> &inputVals) {
     assert(inputVals.size() == m_layers[0].size() - 1);
-
+    auto start = std::chrono::high_resolution_clock::now();
     // add input data to each of the neurons at the first layer
     for (unsigned i = 0; i < inputVals.size(); ++i) {
         m_layers[0][i].setOutputVal(inputVals[i]);
@@ -31,12 +31,14 @@ void Net::feedForward(const vector<double> &inputVals) {
             }
         }
     }
+    auto finish = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed = finish - start;
+    total_forward_time += elapsed.count();
 };
 
 void Net::backProp(const std::vector<double> &targetVals) {
+    auto start = std::chrono::high_resolution_clock::now();
     Layer &outputLayer = m_layers.back();
-
-    // TODO: change to cross-entropy
 
 //  cross-entropy
     m_error = 0.0;
@@ -45,7 +47,6 @@ void Net::backProp(const std::vector<double> &targetVals) {
         m_error += temp;
     }
 
-//    m_error = -m_error/outputLayer.size();
     m_error = -m_error;
 
     m_recentAvgErr = m_error;
@@ -89,6 +90,10 @@ void Net::backProp(const std::vector<double> &targetVals) {
             layer[n].updateInputWeights(prevLayer);
         }
     }
+    auto finish = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed = finish - start;
+
+    total_backprop_time += elapsed.count();
 }
 
 Net::Net(const vector<unsigned> &topology) {
@@ -110,6 +115,9 @@ Net::Net(const vector<unsigned> &topology) {
     for (unsigned n = 0; n < layer.size(); n++) {
         layer[n].if_sotfmax = true;
     }
+
+    total_backprop_time = 0.0;
+    total_forward_time = 0.0;
 }
 
 double Net::getRecentAverageError() const { return m_recentAvgErr; }

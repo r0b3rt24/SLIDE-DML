@@ -16,15 +16,16 @@ void showVectorVals(string label, vector<double> &v)
 
 int main() {
     // init dataloader
+    auto start = std::chrono::high_resolution_clock::now();
     int epoch = 0;
-    Dataloader dataloader("./data/train.txt");
+    Dataloader dataloader("./data/e_data.txt");
     vector<unsigned> topology;
     dataloader.getTopology(topology);
     Net myNet(topology);
-    while (epoch <= 1) {
+    while (epoch <= 50) {
         epoch++;
         cout << "Epoch: " << epoch << endl;
-        Dataloader dataloader("./data/train.txt");
+        Dataloader dataloader("./data/e_data.txt");
         vector<unsigned> topology;
 
         dataloader.getTopology(topology);
@@ -59,5 +60,11 @@ int main() {
         }
     }
 
+    auto finish = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed = finish - start;
+    double total_time = elapsed.count();
+    cout << "Total Forward Time: " << myNet.total_forward_time << endl;
+    cout << "Total Backprop Time: " << myNet.total_backprop_time << endl;
+    cout << "Total Training Time: " << total_time << endl;
     cout << endl << "Done" << endl;
 };
