@@ -17,12 +17,11 @@ void Neuron::feedForward(const Layer &prevLayer) {
     auto start = std::chrono::high_resolution_clock::now();  // timing start
     double sum = 0.0;
 
-    // TODO: bias??
+    #pragma omp parallel for
     for (unsigned n = 0; n < prevLayer.size(); ++n) {
         sum += prevLayer[n].getOutputVal() *
                prevLayer[n].m_outputWeights[m_myIndex].weight;
     }
-//    sum += prevLayer.back().m_outputWeights[m_myIndex].weight;  // Bias
 
     if (if_sotfmax) {
         m_inputVal = sum;  //m_outputVal = inputVal
@@ -36,33 +35,36 @@ void Neuron::feedForward(const Layer &prevLayer) {
 double Neuron::softmax(Layer &thisLayer) {
     double sumExp = 0;
 
+
+    #pragma omp parallel for
     for (unsigned n = 0; n < thisLayer.size()-1; ++n) {
-        Neuron &neuron = thisLayer[n];
-        sumExp += exp(neuron.m_inputVal);
+        sumExp += exp(thisLayer[n].m_inputVal);
     }
 
     m_outputVal = exp(thisLayer[m_myIndex].m_inputVal)/sumExp;
 }
 
 void Neuron::updateInputWeights(Layer &prevLayer) {
+
+#pragma omp parallel for
     for (unsigned n = 0; n < prevLayer.size(); ++n) {
-        Neuron &neuron = prevLayer[n];
-        double oldDeltaWeight = neuron.m_outputWeights[m_myIndex].deltaWeight;
+        double oldDeltaWeight = prevLayer[n].m_outputWeights[m_myIndex].deltaWeight;
 
         double newDeltaWeight =
                 eta
-                * neuron.getOutputVal()
+                * prevLayer[n].getOutputVal()
                 * m_gradient
                 + alpha
                   * oldDeltaWeight;
 
-        neuron.m_outputWeights[m_myIndex].deltaWeight = newDeltaWeight;
-        neuron.m_outputWeights[m_myIndex].weight += newDeltaWeight;  // updated the w
+        prevLayer[n].m_outputWeights[m_myIndex].deltaWeight = newDeltaWeight;
+        prevLayer[n].m_outputWeights[m_myIndex].weight += newDeltaWeight;  // updated the w
     }
 }
 
 void Neuron::calcHiddenGradients(const Layer &nextLayer) {
     double sum = 0;
+#pragma omp parallel for
     for (unsigned n = 0; n < nextLayer.size()-1; n++) {
         sum += nextLayer[n].m_gradient * m_outputWeights[n].weight * Neuron::activationDerivative(m_outputVal);
     }

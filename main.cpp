@@ -16,6 +16,7 @@ void showVectorVals(string label, vector<double> &v)
 
 int main() {
     // init dataloader
+//    omp_set_num_treads(4);
     auto start = std::chrono::high_resolution_clock::now();
     int epoch = 1;
     Dataloader dataloader("./data/train.txt");
@@ -23,13 +24,12 @@ int main() {
     dataloader.getTopology(topology);
     Net myNet(topology);
     while (epoch <= 1) {
-        epoch++;
         cout << "Epoch: " << epoch << endl;
+        epoch++;
         Dataloader dataloader("./data/train.txt");
         vector<unsigned> topology;
 
         dataloader.getTopology(topology);
-//        Net myNet(topology);
 
         vector<double> inputVals, targetVals, resultVals;
         int trainPasses = 0;
