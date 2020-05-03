@@ -17,15 +17,15 @@ void showVectorVals(string label, vector<double> &v)
 int main() {
     // init dataloader
     auto start = std::chrono::high_resolution_clock::now();
-    int epoch = 0;
-    Dataloader dataloader("./data/e_data.txt");
+    int epoch = 1;
+    Dataloader dataloader("./data/train.txt");
     vector<unsigned> topology;
     dataloader.getTopology(topology);
     Net myNet(topology);
-    while (epoch <= 50) {
+    while (epoch <= 1) {
         epoch++;
         cout << "Epoch: " << epoch << endl;
-        Dataloader dataloader("./data/e_data.txt");
+        Dataloader dataloader("./data/train.txt");
         vector<unsigned> topology;
 
         dataloader.getTopology(topology);
@@ -43,20 +43,19 @@ int main() {
                 break;
             }
 
-            showVectorVals(": Inputs:", inputVals);
+//            showVectorVals(": Inputs:", inputVals);
             myNet.feedForward(inputVals);
 
             myNet.getResult(resultVals);
-            showVectorVals("Outputs:", resultVals);
+//            showVectorVals("Outputs:", resultVals);
 
             dataloader.getTargetOutputs(targetVals);
-            showVectorVals("Targets:", targetVals);
+//            showVectorVals("Targets:", targetVals);
             assert(targetVals.size() == topology.back());
 
             myNet.backProp(targetVals);
 
-            cout << "Net recent average error: "
-                << myNet.getRecentAverageError() << endl;
+//            cout << "Net recent average error: " << myNet.getRecentAverageError() << endl;
         }
     }
 
