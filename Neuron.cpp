@@ -21,6 +21,7 @@ double Neuron::softmax(Layer &thisLayer) {
     }
 
     m_outputVal = exp(thisLayer[m_myIndex].m_inputVal)/sumExp;
+    return m_outputVal;
 }
 
 double Neuron::softmaxDrivative(double targetVal) {
