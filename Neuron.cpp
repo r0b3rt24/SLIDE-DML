@@ -17,7 +17,7 @@ void Neuron::feedForward(const Layer &prevLayer) {
     auto start = std::chrono::high_resolution_clock::now();  // timing start
     double sum = 0.0;
 
-    #pragma omp parallel for
+    #pragma omp parallel for reduction(+:sum)
     for (unsigned n = 0; n < prevLayer.size(); ++n) {
         sum += prevLayer[n].getOutputVal() *
                prevLayer[n].m_outputWeights[m_myIndex].weight;
@@ -28,6 +28,7 @@ void Neuron::feedForward(const Layer &prevLayer) {
     } else {
         m_outputVal = Neuron::activation(sum);
     }
+
     auto finish = std::chrono::high_resolution_clock::now();  // timing ends
     std::chrono::duration<double> elapsed = finish - start;
 }
@@ -36,17 +37,18 @@ double Neuron::softmax(Layer &thisLayer) {
     double sumExp = 0;
 
 
-    #pragma omp parallel for
+    #pragma omp parallel for reduction(+:sumExp)
     for (unsigned n = 0; n < thisLayer.size()-1; ++n) {
         sumExp += exp(thisLayer[n].m_inputVal);
     }
 
     m_outputVal = exp(thisLayer[m_myIndex].m_inputVal)/sumExp;
+    return m_outputVal;
 }
 
 void Neuron::updateInputWeights(Layer &prevLayer) {
 
-#pragma omp parallel for
+    #pragma omp parallel for
     for (unsigned n = 0; n < prevLayer.size(); ++n) {
         double oldDeltaWeight = prevLayer[n].m_outputWeights[m_myIndex].deltaWeight;
 
@@ -64,7 +66,8 @@ void Neuron::updateInputWeights(Layer &prevLayer) {
 
 void Neuron::calcHiddenGradients(const Layer &nextLayer) {
     double sum = 0;
-#pragma omp parallel for
+
+    #pragma omp parallel for reduction(+:sum)
     for (unsigned n = 0; n < nextLayer.size()-1; n++) {
         sum += nextLayer[n].m_gradient * m_outputWeights[n].weight * Neuron::activationDerivative(m_outputVal);
     }

@@ -1,10 +1,10 @@
 #include "Net.h"
+#include <chrono>
 
 using namespace std;
 
 void Net::getResult(vector<double> &resultVals) const {
     resultVals.clear();
-#pragma omp parallel for
     for (unsigned n = 0; n < m_layers.back().size() - 1; ++n) {
         resultVals.push_back(m_layers.back()[n].getOutputVal());
     }
@@ -13,27 +13,33 @@ void Net::getResult(vector<double> &resultVals) const {
 void Net::feedForward(const vector<double> &inputVals) {
     assert(inputVals.size() == m_layers[0].size() - 1);
     auto start = std::chrono::high_resolution_clock::now();
+
     // add input data to each of the neurons at the first layer
-#pragma omp parallel for
+    Layer input_layer = m_layers[0];
+    #pragma omp parallel for
     for (unsigned i = 0; i < inputVals.size(); ++i) {
-        m_layers[0][i].setOutputVal(inputVals[i]);
+        input_layer[i].setOutputVal(inputVals[i]);
     }
 
     // actually do the feed forward
-#pragma omp parallel for
+    
     for (unsigned layerNum = 1; layerNum < m_layers.size(); ++layerNum) {
         Layer &prevLayer = m_layers[layerNum - 1];
+            
+        #pragma omp parallel for
         for (unsigned n = 0; n < m_layers[layerNum].size() - 1; ++n) {
             m_layers[layerNum][n].feedForward(prevLayer);
         }
 
         if (layerNum == m_layers.size()-1) {
             Layer &thisLayer = m_layers[layerNum];
+            #pragma omp parallel for 
             for (unsigned n = 0; n < m_layers[layerNum].size() - 1; ++n) {
                 m_layers[layerNum][n].softmax(thisLayer);
             }
         }
     }
+
     auto finish = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed = finish - start;
     total_forward_time += elapsed.count();
@@ -45,7 +51,8 @@ void Net::backProp(const std::vector<double> &targetVals) {
 
 //  cross-entropy
     m_error = 0.0;
-#pragma omp parallel for
+
+    #pragma omp parallel for reduction(+:m_error)
     for (unsigned  n = 0; n < outputLayer.size() - 1; ++n) {
         double temp = targetVals[n] * log(outputLayer[n].getOutputVal());
         m_error += temp;
@@ -57,14 +64,14 @@ void Net::backProp(const std::vector<double> &targetVals) {
 
     // sum exp
     double sumExp = 0;
-#pragma omp parallel for
+    #pragma omp parallel for reduction(+:sumExp)
     for (unsigned n = 0; n < outputLayer.size() - 1; ++n) {
         sumExp += exp(outputLayer[n].getOutputVal());
     }
 
     // calc and set output gradient: no need to update
     vector<double> gradient_output;
-#pragma omp parallel for
+    #pragma omp parallel for
     for (unsigned n = 0; n < outputLayer.size() - 1; ++n) {
         // dE/dO_in
         double o_gradient = (outputLayer[n].getOutputVal() - targetVals[n]) * (outputLayer[n].getOutputVal()*(targetVals[n] - outputLayer[n].getOutputVal()));
@@ -72,29 +79,29 @@ void Net::backProp(const std::vector<double> &targetVals) {
     }
 
     // update input weights for output layer
-#pragma omp parallel for
+    #pragma omp parallel for
     for (unsigned n = 0; n < outputLayer.size() - 1; ++n) {
         // dE/dO_in
         outputLayer[n].updateInputWeights(m_layers[m_layers.size()-2]);
     }
 
     // calculate the gradient for hidden layers
-#pragma omp parallel for
     for (unsigned layerNum = m_layers.size() - 2; layerNum > 0; --layerNum) {  // hidden layers
         Layer &hiddenLayer = m_layers[layerNum];
         Layer &nextLayer = m_layers[layerNum + 1];
 
+        #pragma omp parallel for
         for (unsigned n = 0; n < hiddenLayer.size(); ++n) {
             hiddenLayer[n].calcHiddenGradients(nextLayer);
         }
     }
 
     // update connection weights
-#pragma omp parallel for
     for (unsigned layerNum = m_layers.size() - 1; layerNum > 0; --layerNum) {
         Layer &layer = m_layers[layerNum];
         Layer &prevLayer = m_layers[layerNum - 1];
 
+        #pragma omp parallel for
         for (unsigned n = 0; n < layer.size() - 1; ++n) {
             layer[n].updateInputWeights(prevLayer);
         }
