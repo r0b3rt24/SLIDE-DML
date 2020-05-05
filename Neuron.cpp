@@ -2,8 +2,8 @@
 #include "Connection.h"
 #include <chrono>
 
-double Neuron::eta = 0.015;    // overall net learning rate, [0.0..1.0]
-double Neuron::alpha = 0.5;   // momentum, multiplier of last deltaWeight, [0.0..1.0]
+double Neuron::eta = 0.05;    // overall net learning rate, [0.0..1.0]
+double Neuron::alpha = 0;   // momentum, multiplier of last deltaWeight, [0.0..1.0]
 
 double Neuron::activation(double x) {
     return tanh(x);
@@ -42,7 +42,7 @@ void Neuron::feedForward(const Layer &prevLayer) {
     double sum = 0.0;
     Neuron bias = prevLayer.back();
 
-    #pragma omp parallel for
+    #pragma omp parallel for reduction(+:sum)
     for (unsigned n = 0; n < prevLayer.size(); ++n) {
         sum += prevLayer[n].getOutputVal() *
                prevLayer[n].m_outputWeights[m_myIndex].weight;
@@ -56,6 +56,7 @@ void Neuron::feedForward(const Layer &prevLayer) {
     } else if (n_type == NeuronType::Tanh) {
         m_outputVal = Neuron::activation(sum);
     }
+
     auto finish = std::chrono::high_resolution_clock::now();  // timing ends
     std::chrono::duration<double> elapsed = finish - start;
 }
@@ -63,7 +64,7 @@ void Neuron::feedForward(const Layer &prevLayer) {
 double Neuron::softmax(Layer &thisLayer) {
     double sumExp = 0;
 
-    #pragma omp parallel for
+    #pragma omp parallel for reduction(+:sumExp)
     for (unsigned n = 0; n < thisLayer.size()-1; ++n) {
         sumExp += exp(thisLayer[n].m_inputVal);
     }
@@ -98,13 +99,13 @@ void Neuron::calcHiddenGradients(const Layer &nextLayer) {
     double sum = 0;
 
     if (t == NeuronType::ReLU) {
-        #pragma omp parallel for
+        #pragma omp parallel for reduction(+:sum)
         for (unsigned n = 0; n < nextLayer.size() - 1; n++) {
             sum += nextLayer[n].m_d_weight * m_outputWeights[n].weight;
         }
         sum = sum * Neuron::relu_d(m_outputVal);
     } else if (t == NeuronType::Tanh) {
-        #pragma omp parallel for
+        #pragma omp parallel forreduction(+:sum)
         for (unsigned n = 0; n < nextLayer.size()-1; n++) {
             sum += nextLayer[n].m_d_weight * m_outputWeights[n].weight;
         }

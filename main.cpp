@@ -1,6 +1,8 @@
 #include "Net.h"
 #include <vector>
 #include "Dataloader.h"
+#include <chrono>
+#include <omp.h>
 
 using namespace std;
 
@@ -16,7 +18,11 @@ void showVectorVals(string label, vector<double> &v)
 
 int main() {
     // init dataloader
-//    omp_set_num_treads(4);
+    int t = omp_get_max_threads();
+    cout << "max t:" << t << endl;
+    omp_set_num_threads(1);
+    // cout << "actual t:" << omp_get_num_threads() << endl;
+
     auto start = std::chrono::high_resolution_clock::now();
     int epoch = 1;
     Dataloader dataloader("./data/e_data.txt");
