@@ -19,17 +19,19 @@ int main() {
 //    omp_set_num_treads(4);
     auto start = std::chrono::high_resolution_clock::now();
     int epoch = 1;
-    Dataloader dataloader("./data/train.txt");
+    Dataloader dataloader("./data/e_data.txt");
     vector<unsigned> topology;
+    vector<NeuronType> t;
     dataloader.getTopology(topology);
-    Net myNet(topology);
+    dataloader.getType(t);
+    Net myNet(topology, t);
     while (epoch <= 1) {
         cout << "Epoch: " << epoch << endl;
         epoch++;
-        Dataloader dataloader("./data/train.txt");
-        vector<unsigned> topology;
+        Dataloader dataloader("./data/e_data.txt");
 
         dataloader.getTopology(topology);
+        dataloader.getType(t);
 
         vector<double> inputVals, targetVals, resultVals;
         int trainPasses = 0;
@@ -43,19 +45,19 @@ int main() {
                 break;
             }
 
-//            showVectorVals(": Inputs:", inputVals);
+            showVectorVals(": Inputs:", inputVals);
             myNet.feedForward(inputVals);
 
             myNet.getResult(resultVals);
-//            showVectorVals("Outputs:", resultVals);
+            showVectorVals("Outputs:", resultVals);
 
             dataloader.getTargetOutputs(targetVals);
-//            showVectorVals("Targets:", targetVals);
+            showVectorVals("Targets:", targetVals);
             assert(targetVals.size() == topology.back());
 
             myNet.backProp(targetVals);
 
-//            cout << "Net recent average error: " << myNet.getRecentAverageError() << endl;
+            cout << "Net recent average error: " << myNet.getRecentAverageError() << endl;
         }
     }
 

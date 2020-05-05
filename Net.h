@@ -10,7 +10,7 @@ using namespace std;
 
 class Net {
 public:
-    explicit Net(const vector<unsigned> &topology);
+    explicit Net(const vector<unsigned> &topology, const vector<NeuronType> &t);
 
     void feedForward(const vector<double> &inputVals);
 
@@ -30,7 +30,6 @@ private:
     vector<Layer> m_layers;  //m_layers[layerNum][neuroNum]
     double m_error;
     double m_recentAvgErr;
-
 };
 
 #endif

@@ -23,6 +23,7 @@ void Net::feedForward(const vector<double> &inputVals) {
 #pragma omp parallel for
     for (unsigned layerNum = 1; layerNum < m_layers.size(); ++layerNum) {
         Layer &prevLayer = m_layers[layerNum - 1];
+
         for (unsigned n = 0; n < m_layers[layerNum].size() - 1; ++n) {
             m_layers[layerNum][n].feedForward(prevLayer);
         }
@@ -45,7 +46,7 @@ void Net::backProp(const std::vector<double> &targetVals) {
 
 //  cross-entropy
     m_error = 0.0;
-#pragma omp parallel for
+    #pragma omp parallel for
     for (unsigned  n = 0; n < outputLayer.size() - 1; ++n) {
         double temp = targetVals[n] * log(outputLayer[n].getOutputVal());
         m_error += temp;
@@ -57,30 +58,23 @@ void Net::backProp(const std::vector<double> &targetVals) {
 
     // sum exp
     double sumExp = 0;
-#pragma omp parallel for
+    #pragma omp parallel for
     for (unsigned n = 0; n < outputLayer.size() - 1; ++n) {
         sumExp += exp(outputLayer[n].getOutputVal());
     }
 
-    // calc and set output gradient: no need to update
+    // calc and set output layer gradient: no need to update
     vector<double> gradient_output;
-#pragma omp parallel for
-    for (unsigned n = 0; n < outputLayer.size() - 1; ++n) {
-        // dE/dO_in
-        double o_gradient = (outputLayer[n].getOutputVal() - targetVals[n]) * (outputLayer[n].getOutputVal()*(targetVals[n] - outputLayer[n].getOutputVal()));
+    #pragma omp parallel for
+    for (unsigned n = 0; n < outputLayer.size() - 1; ++n) {  // loop thru every node on the output layer
+        // dE/logit_out
+        double o_gradient = outputLayer[n].softmax_o - targetVals[n];
         outputLayer[n].calcOutputGradients(o_gradient);
     }
 
-    // update input weights for output layer
-#pragma omp parallel for
-    for (unsigned n = 0; n < outputLayer.size() - 1; ++n) {
-        // dE/dO_in
-        outputLayer[n].updateInputWeights(m_layers[m_layers.size()-2]);
-    }
-
     // calculate the gradient for hidden layers
-#pragma omp parallel for
-    for (unsigned layerNum = m_layers.size() - 2; layerNum > 0; --layerNum) {  // hidden layers
+    #pragma omp parallel for
+    for (unsigned layerNum = m_layers.size() - 2; layerNum >= 1; --layerNum) {  // hidden layers
         Layer &hiddenLayer = m_layers[layerNum];
         Layer &nextLayer = m_layers[layerNum + 1];
 
@@ -90,7 +84,7 @@ void Net::backProp(const std::vector<double> &targetVals) {
     }
 
     // update connection weights
-#pragma omp parallel for
+    #pragma omp parallel for
     for (unsigned layerNum = m_layers.size() - 1; layerNum > 0; --layerNum) {
         Layer &layer = m_layers[layerNum];
         Layer &prevLayer = m_layers[layerNum - 1];
@@ -105,25 +99,19 @@ void Net::backProp(const std::vector<double> &targetVals) {
     total_backprop_time += elapsed.count();
 }
 
-Net::Net(const vector<unsigned> &topology) {
+Net::Net(const vector<unsigned> &topology, const vector<NeuronType> &t) {
     unsigned numLayers = topology.size();
     for (unsigned layerNum = 0; layerNum < numLayers; ++layerNum) {
         m_layers.push_back(Layer());
         unsigned numOutputs = layerNum == topology.size() - 1 ? 0 : topology[layerNum + 1];
-
+        NeuronType myType = t[layerNum];
         for (unsigned neuroNum = 0; neuroNum <= topology[layerNum]; ++neuroNum) {
-            m_layers.back().push_back(Neuron(numOutputs, neuroNum));
+            m_layers.back().push_back(Neuron(numOutputs, neuroNum, myType));
 //            cout << "Neuron Got Created" << endl;
         }
     }
     Net::m_recentAvgSmoothingFactor = 100.0; // Number of training samples to average over
     m_layers.back().back().setOutputVal(1.0);
-
-    // make last layer become softmax
-    Layer &layer = m_layers.back();
-    for (unsigned n = 0; n < layer.size(); n++) {
-        layer[n].if_sotfmax = true;
-    }
 
     total_backprop_time = 0.0;
     total_forward_time = 0.0;

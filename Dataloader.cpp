@@ -5,6 +5,7 @@
 #include <sstream>
 #include <vector>
 #include "Dataloader.h"
+#include "Neuron.h"
 
 void Dataloader::getTopology(vector<unsigned int> &topology) {
     string line;
@@ -22,6 +23,34 @@ void Dataloader::getTopology(vector<unsigned int> &topology) {
         unsigned n;
         ss >> n;
         topology.push_back(n);
+    }
+}
+
+void Dataloader::getType(vector<NeuronType> &t) {
+    string line;
+    string label;
+
+    getline(m_trainingDataFile, line);
+    stringstream ss(line);
+    ss >> label;
+
+    if (this->isEof() || label.compare("type:")!= 0) {
+        abort();
+    }
+
+    while (!ss.eof()) {
+        std::string n;
+        ss >> n;
+        if (n == "tanh") {
+            t.push_back(NeuronType::Tanh);
+        } else if (n == "relu") {
+            t.push_back(NeuronType::ReLU);
+        } else if (n == "input") {
+            t.push_back(NeuronType::Input);
+        } else if (n == "softmax") {
+            t.push_back(NeuronType::Softmax);
+        }
+
     }
 }
 

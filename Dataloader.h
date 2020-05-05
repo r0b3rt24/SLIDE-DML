@@ -7,6 +7,7 @@
 
 #include <string>
 #include <fstream>
+#include "Neuron.h"
 
 using namespace std;
 class Dataloader
@@ -15,6 +16,7 @@ public:
     Dataloader(const string datapath);
     bool isEof(void) {return m_trainingDataFile.eof();}
     void getTopology(vector<unsigned> &topology);
+    void getType(vector<NeuronType> &t);
 
     unsigned  getNext(vector<double> &inputVals);
     unsigned  getTargetOutputs(vector<double> &targetOutputVals);

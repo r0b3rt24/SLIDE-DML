@@ -8,21 +8,13 @@
 
 /Users/hcao/Projects/Schoolwork/CS759/SLIDE-DML/Connection.h
 
-/Users/hcao/Projects/Schoolwork/CS759/SLIDE-DML/Dataloader.h
-string
--
-fstream
--
-
-/Users/hcao/Projects/Schoolwork/CS759/SLIDE-DML/Net.h
-vector
--
-cassert
--
-iostream
--
+/Users/hcao/Projects/Schoolwork/CS759/SLIDE-DML/Neuron.cpp
 Neuron.h
 /Users/hcao/Projects/Schoolwork/CS759/SLIDE-DML/Neuron.h
+Connection.h
+/Users/hcao/Projects/Schoolwork/CS759/SLIDE-DML/Connection.h
+chrono
+-
 
 /Users/hcao/Projects/Schoolwork/CS759/SLIDE-DML/Neuron.h
 Connection.h
@@ -33,12 +25,6 @@ cstdlib
 -
 cmath
 -
-
-/Users/hcao/Projects/Schoolwork/CS759/SLIDE-DML/main.cpp
-Net.h
-/Users/hcao/Projects/Schoolwork/CS759/SLIDE-DML/Net.h
-vector
+string
 -
-Dataloader.h
-/Users/hcao/Projects/Schoolwork/CS759/SLIDE-DML/Dataloader.h
 
