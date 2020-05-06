@@ -1,7 +1,7 @@
 # SLIDE-DML
 Final Project for CS759
 
-# TO RUN THE PROGRAM
+### TO RUN THE PROGRAM
 1. Download the formatted dataset from https://drive.google.com/open?id=1KAmKIO-Jy5a_zyBDHea6GYdw_gny7ft2
 
 2. Move it under the folder called data. So the path should look like ./data/train.txt
