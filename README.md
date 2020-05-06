@@ -9,6 +9,7 @@ Final Project for CS759
 3. Add the desired structe of the model on the top of the train.txt for example
 
 topology: 728 200 100 10
+
 type: input tanh relu output 
 
 It means the first layer has 728 input, the second layer has 200 nodes using tanh activation function, the third layer using relu with 100 nodes, and the output layer will always be softmax. 
